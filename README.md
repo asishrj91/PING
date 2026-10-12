@@ -10,6 +10,12 @@ Download [PING 1.1.4 sample APK](https://github.com/asishrj91/PING/releases/down
 
 This is a debug build for testing. Install it on both phones, then follow the [Firebase configuration guide](docs/FIREBASE_SETUP.md) and [phone setup guide](docs/USER_GUIDE.md). Both phones need configuration for the same Firebase project. No Firebase credentials are bundled in the APK.
 
+## Screenshots
+
+| Landing page | Broadcaster | Observer map |
+| --- | --- | --- |
+| <img src="docs/screenshots/landing.jpg" alt="PING landing page with Share Location and Track Someone options" width="250"> | <img src="docs/screenshots/broadcaster.jpg" alt="Active broadcaster screen with session PIN, SOS and Stop Broadcasting controls" width="250"> | <img src="docs/screenshots/observer.jpg" alt="Observer map with heartbeat, movement status and broadcaster battery percentage" width="250"> |
+
 ## Features
 
 - First GPS fix is published immediately; subsequent coordinates are published after detected movement exceeds 5 metres from the last successfully published fix. GPS updates are requested approximately every 10 seconds, subject to Android scheduling and accuracy.
