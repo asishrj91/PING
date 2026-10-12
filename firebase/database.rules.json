@@ -1,0 +1,43 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "active_sessions": {
+      "$pin": {
+        ".read": "auth != null && $pin.matches(/^[0-9]{6}$/) && (data.child('owner_uid').val() === auth.uid || !data.child('observer').exists() || data.child('observer').child('uid').val() === auth.uid)",
+        ".write": "auth != null && $pin.matches(/^[0-9]{6}$/) && ((!data.exists() && newData.child('owner_uid').val() === auth.uid) || data.child('owner_uid').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['owner_uid', 'session_id']) && (!data.exists() || (newData.child('owner_uid').val() === data.child('owner_uid').val() && newData.child('session_id').val() === data.child('session_id').val()))",
+        "owner_uid": { ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val())" },
+        "session_id": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128" },
+        "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
+        "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
+        "accuracy_m": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "battery_percent": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100 && newData.val() % 1 === 0" },
+        "battery_charging": { ".validate": "newData.isBoolean()" },
+        "heartbeat_at": { ".validate": "newData.isNumber()" },
+        "timestamp": { ".validate": "newData.isNumber()" },
+        "last_moved_at": { ".validate": "newData.isNumber()" },
+        "location_updated_at": { ".validate": "newData.isNumber()" },
+        "heartbeat_interval_ms": { ".validate": "newData.isNumber()" },
+        "sos_active": { ".validate": "newData.isBoolean()" },
+        "observer": {
+          ".write": "auth != null && data.parent().hasChildren(['owner_uid', 'session_id']) && (!data.exists() || data.child('uid').val() === auth.uid) && (!newData.exists() || newData.child('uid').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['uid', 'session_id', 'connection_id']) && newData.child('uid').val() === auth.uid && newData.child('session_id').val() === newData.parent().child('session_id').val()",
+          "uid": { ".validate": "newData.isString()" },
+          "session_id": { ".validate": "newData.isString()" },
+          "connection_id": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128" },
+          "$other": { ".validate": false }
+        },
+        "sos": {
+          ".validate": "newData.hasChildren(['active', 'event_id', 'session_id', 'at']) && newData.child('session_id').val() === newData.parent().child('session_id').val() && newData.child('active').val() === newData.parent().child('sos_active').val()",
+          "active": { ".validate": "newData.isBoolean()" },
+          "event_id": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128" },
+          "session_id": { ".validate": "newData.isString()" },
+          "at": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

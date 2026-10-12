@@ -1,0 +1,50 @@
+# Android/Gradle outputs and local IDE state
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+*.iml
+.cxx/
+.externalNativeBuild/
+captures/
+
+# Distribute APKs through GitHub Releases, not source history
+*.apk
+*.aab
+*.apks
+dist/
+
+# Machine-specific or private configuration/signing material
+google-services.json
+firebase-config.json
+*service-account*.json
+*firebase-adminsdk*.json
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+.env
+.env.*
+!.env.example
+.firebaserc
+
+# Optional test tooling and generated reports
+node_modules/
+.firebase/
+*-debug.log
+playwright-report/
+test-results/
+coverage/
+*.log
+*.tmp
+.tmp/
+
+# Local workspace tools / OS metadata
+.codex/
+.agents/
+.aws/
+.DS_Store
+Thumbs.db
+Desktop.ini

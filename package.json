@@ -1,0 +1,15 @@
+{
+  "name": "ping-development-tools",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node PingNative/check-map.cjs",
+    "test:map:browser": "node PingNative/check-map-browser.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "playwright": "1.64.0"
+  }
+}

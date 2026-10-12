@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="color-scheme" content="light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="leaflet.css" />
+  <script src="leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: #e8e6df; color-scheme: light; }
+    #map { position: fixed; inset: 0; background: #e8e6df; }
+    /* Keep tiles readable and avoid WebView filter/blending compositor issues. */
+    .leaflet-container img.leaflet-tile { mix-blend-mode: normal; }
+    .leaflet-control-attribution { font-size: 9px; }
+    #tile-error { display: none; position: absolute; bottom: 210px; left: 24px; right: 24px;
+      z-index: 1000; padding: 12px; border: 1px solid #888; border-radius: 12px;
+      background: #111; color: #fff; font: 12px monospace; text-align: center; }
+    .custom-marker {
+      width: 18px; height: 18px;
+      background: #D71921;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgba(215,25,33,0.7), 0 0 40px rgba(215,25,33,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <button id="tile-error" type="button">Map tiles unavailable. Check internet and tap to retry.</button>
+  <script>
+    window.mapReady = false;
+    var map = L.map('map', { zoomControl: false }).setView([20, 0], 2);
+    var tileError = document.getElementById('tile-error');
+    var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    tiles.on('tileerror', function () { tileError.style.display = 'block'; });
+    // A later loading event must not erase an earlier tile failure.
+    tiles.on('load', function () {
+      var failed = Array.prototype.some.call(document.querySelectorAll('#map .leaflet-tile'), function (tile) {
+        return tile.complete && tile.naturalWidth === 0;
+      });
+      tileError.style.display = failed ? 'block' : 'none';
+    });
+    tileError.onclick = function () { tileError.style.display = 'none'; tiles.redraw(); };
+    window.addEventListener('online', function () { tiles.redraw(); });
+    tiles.addTo(map);
+    window.addEventListener('resize', function () { map.invalidateSize(); });
+    var customIcon = L.divIcon({
+      className: '',
+      html: '<div class="custom-marker"></div>',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
+    var marker = null;
+    var isFirstLocation = true;
+    var animFrame = null;
+    var currentLat = 0, currentLng = 0;
+    var targetLat = 0, targetLng = 0;
+    var animStartTime = 0, animDuration = 2500;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function animateStep(timestamp) {
+      if (!animStartTime) animStartTime = timestamp;
+      var elapsed = timestamp - animStartTime;
+      var t = Math.min(elapsed / animDuration, 1);
+      t = 1 - Math.pow(1 - t, 3);
+      var lat = lerp(currentLat, targetLat, t);
+      var lng = lerp(currentLng, targetLng, t);
+      if (marker) marker.setLatLng([lat, lng]);
+      if (t < 1) animFrame = requestAnimationFrame(animateStep);
+      else { currentLat = targetLat; currentLng = targetLng; }
+    }
+
+    function updateLocation(lat, lng) {
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+          lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+      map.invalidateSize();
+      if (isFirstLocation) {
+        isFirstLocation = false;
+        currentLat = lat; currentLng = lng;
+        targetLat = lat; targetLng = lng;
+        marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+        map.setView([lat, lng], 16);
+        return;
+      }
+      if (animFrame) cancelAnimationFrame(animFrame);
+      currentLat = marker.getLatLng().lat;
+      currentLng = marker.getLatLng().lng;
+      targetLat = lat; targetLng = lng;
+      // An observer follows the broadcaster, including after the first GPS fix.
+      map.panTo([lat, lng], { animate: true, duration: 0.5 });
+      animStartTime = 0;
+      animFrame = requestAnimationFrame(animateStep);
+    }
+    function recenterLocation() {
+      map.invalidateSize();
+      if (!isFirstLocation) map.setView([targetLat, targetLng], Math.max(map.getZoom(), 16));
+    }
+    window.mapReady = true;
+  </script>
+</body>
+</html>
